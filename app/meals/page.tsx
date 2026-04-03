@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation'
 import MealCard from '@/components/MealCard'
 import { Ingredient, Recipe } from '@/lib/types'
 import { getFavorites } from '@/lib/favorites'
+import { generateSingleMeal } from '@/lib/zhipu'
 
 interface MealPlan {
   breakfast: Recipe | null
@@ -12,10 +13,16 @@ interface MealPlan {
   dinner: Recipe | null
 }
 
+type MealType = 'breakfast' | 'lunch' | 'dinner'
+
 function MealsContent() {
   const searchParams = useSearchParams()
   const [mealPlan, setMealPlan] = useState<MealPlan | null>(null)
   const [loading, setLoading] = useState(true)
+  const [regenerating, setRegenerating] = useState<MealType | null>(null)
+
+  const ingredientsRef = { current: [] as Ingredient[] }
+  const cuisinesRef = { current: [] as string[] }
 
   useEffect(() => {
     const ingredientsParam = searchParams.get('ingredients')
@@ -28,6 +35,8 @@ function MealsContent() {
 
     const ingredients: Ingredient[] = JSON.parse(ingredientsParam)
     const cuisines: string[] = cuisinesParam ? JSON.parse(cuisinesParam) : []
+    ingredientsRef.current = ingredients
+    cuisinesRef.current = cuisines
     const favorites = getFavorites()
 
     fetch('/api/recipes/generate', {
@@ -46,6 +55,29 @@ function MealsContent() {
         setLoading(false)
       })
   }, [searchParams])
+
+  const handleRegenerate = async (type: MealType) => {
+    if (!mealPlan || regenerating) return
+    setRegenerating(type)
+
+    try {
+      const ingredients = ingredientsRef.current
+      const cuisines = cuisinesRef.current
+      const favorites = getFavorites()
+      const cuisineType = type === 'breakfast' ? '早餐' : type === 'lunch' ? '午餐' : '晚餐'
+
+      const newRecipe = await generateSingleMeal(ingredients, cuisineType, favorites)
+
+      setMealPlan(prev => {
+        if (!prev) return prev
+        return { ...prev, [type]: newRecipe }
+      })
+    } catch (error) {
+      console.error('Failed to regenerate:', error)
+    } finally {
+      setRegenerating(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -77,36 +109,68 @@ function MealsContent() {
       {/* Meal Cards */}
       <main className="max-w-lg mx-auto px-4 py-6">
         <div className="grid grid-cols-1 gap-4">
-          <MealCard
-            type="breakfast"
-            recipe={mealPlan.breakfast}
-            onClick={() => {
-              if (mealPlan.breakfast) {
-                sessionStorage.setItem('selectedRecipe', JSON.stringify(mealPlan.breakfast))
-                window.location.href = `/meals/${mealPlan.breakfast.id}`
-              }
-            }}
-          />
-          <MealCard
-            type="lunch"
-            recipe={mealPlan.lunch}
-            onClick={() => {
-              if (mealPlan.lunch) {
-                sessionStorage.setItem('selectedRecipe', JSON.stringify(mealPlan.lunch))
-                window.location.href = `/meals/${mealPlan.lunch.id}`
-              }
-            }}
-          />
-          <MealCard
-            type="dinner"
-            recipe={mealPlan.dinner}
-            onClick={() => {
-              if (mealPlan.dinner) {
-                sessionStorage.setItem('selectedRecipe', JSON.stringify(mealPlan.dinner))
-                window.location.href = `/meals/${mealPlan.dinner.id}`
-              }
-            }}
-          />
+          {/* Breakfast */}
+          <div className="relative">
+            <MealCard
+              type="breakfast"
+              recipe={mealPlan.breakfast}
+              onClick={() => {
+                if (mealPlan.breakfast) {
+                  sessionStorage.setItem('selectedRecipe', JSON.stringify(mealPlan.breakfast))
+                  window.location.href = `/meals/${mealPlan.breakfast.id}`
+                }
+              }}
+            />
+            <button
+              onClick={() => handleRegenerate('breakfast')}
+              disabled={regenerating !== null}
+              className="absolute top-2 right-2 px-3 py-1 bg-white/90 rounded-full text-sm shadow hover:bg-white transition-colors disabled:opacity-50"
+            >
+              {regenerating === 'breakfast' ? '🔄' : '🔄 换一换'}
+            </button>
+          </div>
+
+          {/* Lunch */}
+          <div className="relative">
+            <MealCard
+              type="lunch"
+              recipe={mealPlan.lunch}
+              onClick={() => {
+                if (mealPlan.lunch) {
+                  sessionStorage.setItem('selectedRecipe', JSON.stringify(mealPlan.lunch))
+                  window.location.href = `/meals/${mealPlan.lunch.id}`
+                }
+              }}
+            />
+            <button
+              onClick={() => handleRegenerate('lunch')}
+              disabled={regenerating !== null}
+              className="absolute top-2 right-2 px-3 py-1 bg-white/90 rounded-full text-sm shadow hover:bg-white transition-colors disabled:opacity-50"
+            >
+              {regenerating === 'lunch' ? '🔄' : '🔄 换一换'}
+            </button>
+          </div>
+
+          {/* Dinner */}
+          <div className="relative">
+            <MealCard
+              type="dinner"
+              recipe={mealPlan.dinner}
+              onClick={() => {
+                if (mealPlan.dinner) {
+                  sessionStorage.setItem('selectedRecipe', JSON.stringify(mealPlan.dinner))
+                  window.location.href = `/meals/${mealPlan.dinner.id}`
+                }
+              }}
+            />
+            <button
+              onClick={() => handleRegenerate('dinner')}
+              disabled={regenerating !== null}
+              className="absolute top-2 right-2 px-3 py-1 bg-white/90 rounded-full text-sm shadow hover:bg-white transition-colors disabled:opacity-50"
+            >
+              {regenerating === 'dinner' ? '🔄' : '🔄 换一换'}
+            </button>
+          </div>
         </div>
       </main>
     </div>
