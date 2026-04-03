@@ -1,3 +1,5 @@
+import { getDishImage } from './images'
+
 const ZHIHU_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
 
 interface Recipe {
@@ -90,9 +92,10 @@ export async function generateRecipesByIngredients(
   if (match) {
     try {
       const recipe = JSON.parse(match[0])
+      const mealType = cuisine === '早餐' ? 'breakfast' : cuisine === '午餐' ? 'lunch' : 'dinner'
       return {
         id: `zhipu-${Date.now()}`,
-        image: '',
+        image: getDishImage(recipe.title, mealType),
         servings: recipe.servings || 2,
         ...recipe
       }
