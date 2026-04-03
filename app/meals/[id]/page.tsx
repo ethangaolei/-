@@ -1,17 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import NutritionInfo from '@/components/NutritionInfo'
 import { Recipe } from '@/lib/types'
 import { isFavorite, toggleFavorite } from '@/lib/favorites'
-
-const fallbackImages: Record<string, string> = {
-  breakfast: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&h=600&fit=crop',
-  lunch: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=600&fit=crop',
-  dinner: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=800&h=600&fit=crop',
-}
 
 export default function RecipeDetailPage() {
   const params = useParams()
@@ -22,7 +15,6 @@ export default function RecipeDetailPage() {
   useEffect(() => {
     if (!params.id) return
 
-    // First check sessionStorage for zhipu recipes
     const stored = sessionStorage.getItem('selectedRecipe')
     if (stored) {
       const parsed = JSON.parse(stored)
@@ -34,7 +26,6 @@ export default function RecipeDetailPage() {
       }
     }
 
-    // Fallback to API for other recipe IDs
     fetch(`/api/recipe/${params.id}`)
       .then(res => res.json())
       .then(data => {
@@ -73,8 +64,6 @@ export default function RecipeDetailPage() {
     )
   }
 
-  const imageUrl = recipe.image && recipe.image.length > 0 ? recipe.image : fallbackImages.dinner
-
   return (
     <div className="min-h-screen pb-8">
       {/* Header */}
@@ -91,14 +80,8 @@ export default function RecipeDetailPage() {
       </header>
 
       {/* Hero Image */}
-      <div className="relative h-64 w-full">
-        <Image
-          src={imageUrl}
-          alt={recipe.title}
-          fill
-          className="object-cover"
-          sizes="100vw"
-        />
+      <div className="h-64 w-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+        <span className="text-8xl">🍽️</span>
       </div>
 
       {/* Content */}

@@ -1,4 +1,3 @@
-import Image from 'next/image'
 import { Recipe } from '@/lib/types'
 
 interface MealCardProps {
@@ -13,10 +12,10 @@ const mealTypeLabels = {
   dinner: '🌙 晚餐',
 }
 
-const fallbackImages: Record<string, string> = {
-  breakfast: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666',
-  lunch: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
-  dinner: 'https://images.unsplash.com/photo-1547592180-85f173990554',
+const mealColors = {
+  breakfast: 'from-orange-400 to-yellow-300',
+  lunch: 'from-green-400 to-emerald-300',
+  dinner: 'from-purple-400 to-pink-300',
 }
 
 export default function MealCard({ type, recipe, onClick }: MealCardProps) {
@@ -29,21 +28,13 @@ export default function MealCard({ type, recipe, onClick }: MealCardProps) {
     )
   }
 
-  const imageUrl = recipe.image && recipe.image.length > 0 ? recipe.image : fallbackImages[type]
-
   return (
     <button
       onClick={onClick}
       className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow text-left w-full"
     >
-      <div className="relative h-40 w-full bg-gray-100">
-        <Image
-          src={imageUrl}
-          alt={recipe.title}
-          fill
-          className="object-cover"
-          sizes="(max-width: 768px) 100vw, 33vw"
-        />
+      <div className={`h-40 w-full bg-gradient-to-br ${mealColors[type]} flex items-center justify-center`}>
+        <span className="text-4xl">🍽️</span>
       </div>
       <div className="p-4">
         <p className="text-xs text-gray-400 mb-1">{mealTypeLabels[type]}</p>
