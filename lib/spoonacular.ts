@@ -44,11 +44,9 @@ const ingredientTranslation: Record<string, string> = {
   '西瓜': 'watermelon',
   '柠檬': 'lemon',
   '牛油果': 'avocado',
-  '牛奶': 'milk',
   '酸奶': 'yogurt',
   '面包': 'bread',
   '三文鱼': 'salmon',
-  '虾': 'shrimp',
   '蟹': 'crab',
   '龙虾': 'lobster',
 }
