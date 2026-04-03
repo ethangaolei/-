@@ -1,23 +1,7 @@
 import { getDishImage } from './images'
+import { Recipe } from './types'
 
 const ZHIHU_API_URL = 'https://open.bigmodel.cn/api/paas/v4/chat/completions'
-
-interface Recipe {
-  id: string
-  title: string
-  image: string
-  readyInMinutes: number
-  servings: number
-  cuisines: string[]
-  analyzedInstructions: string[]
-  extendedIngredients: string[]
-  nutrition: {
-    calories: number
-    protein: string
-    carbs: string
-    fat: string
-  }
-}
 
 export async function generateRecipesByIngredients(
   ingredients: Array<{ name: string; quantity: number; unit: string }>,
