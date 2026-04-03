@@ -31,8 +31,9 @@ export function isFavorite(recipeId: string): boolean {
 }
 
 export function toggleFavorite(recipe: Recipe): boolean {
-  if (isFavorite(recipe.id)) {
-    removeFavorite(recipe.id)
+  const idStr = String(recipe.id)
+  if (isFavorite(idStr)) {
+    removeFavorite(idStr)
     return false
   } else {
     addFavorite(recipe)
