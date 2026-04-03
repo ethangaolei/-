@@ -13,7 +13,7 @@ export interface DailyInventory {
 }
 
 export interface Recipe {
-  id: number
+  id: number | string
   title: string
   image: string
   readyInMinutes: number

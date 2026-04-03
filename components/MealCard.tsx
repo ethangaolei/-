@@ -13,6 +13,12 @@ const mealTypeLabels = {
   dinner: '🌙 晚餐',
 }
 
+const fallbackImages: Record<string, string> = {
+  breakfast: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666',
+  lunch: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c',
+  dinner: 'https://images.unsplash.com/photo-1547592180-85f173990554',
+}
+
 export default function MealCard({ type, recipe, onClick }: MealCardProps) {
   if (!recipe) {
     return (
@@ -23,14 +29,16 @@ export default function MealCard({ type, recipe, onClick }: MealCardProps) {
     )
   }
 
+  const imageUrl = recipe.image && recipe.image.length > 0 ? recipe.image : fallbackImages[type]
+
   return (
     <button
       onClick={onClick}
       className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow text-left w-full"
     >
-      <div className="relative h-40 w-full">
+      <div className="relative h-40 w-full bg-gray-100">
         <Image
-          src={recipe.image}
+          src={imageUrl}
           alt={recipe.title}
           fill
           className="object-cover"

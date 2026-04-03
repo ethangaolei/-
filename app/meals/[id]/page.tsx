@@ -5,19 +5,41 @@ import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import NutritionInfo from '@/components/NutritionInfo'
 import { Recipe } from '@/lib/types'
+import { isFavorite, toggleFavorite } from '@/lib/favorites'
+
+const fallbackImages: Record<string, string> = {
+  breakfast: 'https://images.unsplash.com/photo-1533089860892-a7c6f0a88666?w=800&h=600&fit=crop',
+  lunch: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=800&h=600&fit=crop',
+  dinner: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=800&h=600&fit=crop',
+}
 
 export default function RecipeDetailPage() {
   const params = useParams()
   const [recipe, setRecipe] = useState<Recipe | null>(null)
   const [loading, setLoading] = useState(true)
+  const [favorited, setFavorited] = useState(false)
 
   useEffect(() => {
     if (!params.id) return
 
+    // First check sessionStorage for zhipu recipes
+    const stored = sessionStorage.getItem('selectedRecipe')
+    if (stored) {
+      const parsed = JSON.parse(stored)
+      if (parsed.id == params.id) {
+        setRecipe(parsed)
+        setFavorited(isFavorite(parsed.id))
+        setLoading(false)
+        return
+      }
+    }
+
+    // Fallback to API for other recipe IDs
     fetch(`/api/recipe/${params.id}`)
       .then(res => res.json())
       .then(data => {
         setRecipe(data)
+        setFavorited(isFavorite(data.id))
         setLoading(false)
       })
       .catch(err => {
@@ -25,6 +47,12 @@ export default function RecipeDetailPage() {
         setLoading(false)
       })
   }, [params.id])
+
+  const handleToggleFavorite = () => {
+    if (!recipe) return
+    const newState = toggleFavorite(recipe)
+    setFavorited(newState)
+  }
 
   if (loading) {
     return (
@@ -45,18 +73,27 @@ export default function RecipeDetailPage() {
     )
   }
 
+  const imageUrl = recipe.image && recipe.image.length > 0 ? recipe.image : fallbackImages.dinner
+
   return (
     <div className="min-h-screen pb-8">
       {/* Header */}
       <header className="bg-white shadow-sm px-4 py-4 flex items-center sticky top-0 z-10">
         <button onClick={() => history.back()} className="text-gray-600 mr-4 text-2xl">←</button>
-        <h1 className="text-xl font-bold text-gray-800 truncate">{recipe.title}</h1>
+        <h1 className="text-xl font-bold text-gray-800 truncate flex-1">{recipe.title}</h1>
+        <button
+          onClick={handleToggleFavorite}
+          className="text-2xl ml-2"
+          style={{ color: favorited ? '#e53e3e' : '#ccc' }}
+        >
+          {favorited ? '❤️' : '🤍'}
+        </button>
       </header>
 
       {/* Hero Image */}
       <div className="relative h-64 w-full">
         <Image
-          src={recipe.image}
+          src={imageUrl}
           alt={recipe.title}
           fill
           className="object-cover"
@@ -70,7 +107,7 @@ export default function RecipeDetailPage() {
         <div className="flex gap-4 text-sm text-gray-600">
           <span>⏱️ {recipe.readyInMinutes}分钟</span>
           <span>👤 {recipe.servings}人份</span>
-          {recipe.cuisines.length > 0 && (
+          {recipe.cuisines && recipe.cuisines.length > 0 && (
             <span>{recipe.cuisines[0]}</span>
           )}
         </div>

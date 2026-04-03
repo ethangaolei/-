@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import MealCard from '@/components/MealCard'
 import { Ingredient, Recipe } from '@/lib/types'
+import { getFavorites } from '@/lib/favorites'
 
 interface MealPlan {
   breakfast: Recipe | null
@@ -27,15 +28,17 @@ function MealsContent() {
 
     const ingredients: Ingredient[] = JSON.parse(ingredientsParam)
     const cuisines: string[] = cuisinesParam ? JSON.parse(cuisinesParam) : []
+    const favorites = getFavorites()
 
     fetch('/api/recipes/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ingredients, cuisines }),
+      body: JSON.stringify({ ingredients, cuisines, favorites }),
     })
       .then(res => res.json())
       .then(data => {
         setMealPlan(data)
+        sessionStorage.setItem('currentMealPlan', JSON.stringify(data))
         setLoading(false)
       })
       .catch(err => {
@@ -77,17 +80,32 @@ function MealsContent() {
           <MealCard
             type="breakfast"
             recipe={mealPlan.breakfast}
-            onClick={() => mealPlan.breakfast && (window.location.href = `/meals/${mealPlan.breakfast.id}`)}
+            onClick={() => {
+              if (mealPlan.breakfast) {
+                sessionStorage.setItem('selectedRecipe', JSON.stringify(mealPlan.breakfast))
+                window.location.href = `/meals/${mealPlan.breakfast.id}`
+              }
+            }}
           />
           <MealCard
             type="lunch"
             recipe={mealPlan.lunch}
-            onClick={() => mealPlan.lunch && (window.location.href = `/meals/${mealPlan.lunch.id}`)}
+            onClick={() => {
+              if (mealPlan.lunch) {
+                sessionStorage.setItem('selectedRecipe', JSON.stringify(mealPlan.lunch))
+                window.location.href = `/meals/${mealPlan.lunch.id}`
+              }
+            }}
           />
           <MealCard
             type="dinner"
             recipe={mealPlan.dinner}
-            onClick={() => mealPlan.dinner && (window.location.href = `/meals/${mealPlan.dinner.id}`)}
+            onClick={() => {
+              if (mealPlan.dinner) {
+                sessionStorage.setItem('selectedRecipe', JSON.stringify(mealPlan.dinner))
+                window.location.href = `/meals/${mealPlan.dinner.id}`
+              }
+            }}
           />
         </div>
       </main>

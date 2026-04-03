@@ -1,32 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { findRecipesByIngredients, getRecipeDetails } from '@/lib/spoonacular'
+import { generateRecipesByIngredients } from '@/lib/zhipu'
 import { saveInventory, saveHistory } from '@/lib/db'
-
-const cuisineMap: Record<string, string> = {
-  '川菜': 'Sichuan',
-  '粤菜': 'Cantonese',
-  '江浙菜': 'Jiangsu',
-  '湘菜': 'Hunan',
-  '鲁菜': 'Shandong',
-  '西餐': 'European',
-  '日料': 'Japanese',
-  '韩料': 'Korean',
-  '东南亚菜': 'Southeast Asian',
-  '中式早餐': 'Chinese',
-  '西式早餐': 'European',
-  '日式早餐': 'Japanese',
-}
+import { Recipe } from '@/lib/types'
 
 export async function POST(request: NextRequest) {
   try {
-    const { ingredients, cuisines = [], date = new Date().toISOString().split('T')[0] } = await request.json()
+    const { ingredients, cuisines = [], favorites = [], date = new Date().toISOString().split('T')[0] } = await request.json()
 
     if (!ingredients || ingredients.length === 0) {
       return NextResponse.json({ error: 'Ingredients are required' }, { status: 400 })
     }
-
-    const ingredientNames = ingredients.map((i: any) => i.name)
-    const mappedCuisines = cuisines.map((c: string) => cuisineMap[c]).filter(Boolean)
 
     saveInventory({
       date,
@@ -34,23 +17,25 @@ export async function POST(request: NextRequest) {
       cuisine_preferences: cuisines,
     })
 
-    const breakfastRecipes = await findRecipesByIngredients(ingredientNames, mappedCuisines.slice(0, 1), 3)
-    const lunchRecipes = await findRecipesByIngredients(ingredientNames, mappedCuisines.slice(1, 2), 3)
-    const dinnerRecipes = await findRecipesByIngredients(ingredientNames, mappedCuisines.slice(2, 3), 3)
+    // Always use meal types + selected cuisine for variety
+    const selectedCuisine = cuisines.length > 0 ? cuisines[0] : '家常菜'
+    const breakfastCuisine = '早餐'
+    const lunchCuisine = '午餐'
+    const dinnerCuisine = '晚餐'
 
-    const breakfast = breakfastRecipes[0] ? await getRecipeDetails(breakfastRecipes[0].id) : null
-    const lunch = lunchRecipes[0] ? await getRecipeDetails(lunchRecipes[0].id) : null
-    const dinner = dinnerRecipes[0] ? await getRecipeDetails(dinnerRecipes[0].id) : null
+    const [breakfast, lunch, dinner] = await Promise.all([
+      generateRecipesByIngredients(ingredients, breakfastCuisine, favorites as Recipe[]),
+      generateRecipesByIngredients(ingredients, lunchCuisine, favorites as Recipe[]),
+      generateRecipesByIngredients(ingredients, dinnerCuisine, favorites as Recipe[]),
+    ])
 
-    if (breakfast || lunch || dinner) {
-      saveHistory({
-        date,
-        breakfast_id: breakfast?.id || 0,
-        lunch_id: lunch?.id || 0,
-        dinner_id: dinner?.id || 0,
-        ingredients,
-      })
-    }
+    saveHistory({
+      date,
+      breakfast_id: 0,
+      lunch_id: 0,
+      dinner_id: 0,
+      ingredients,
+    })
 
     return NextResponse.json({ breakfast, lunch, dinner })
   } catch (error) {

@@ -1,5 +1,62 @@
 const BASE_URL = 'https://api.spoonacular.com'
 
+const ingredientTranslation: Record<string, string> = {
+  '鸡蛋': 'egg',
+  '鸡肉': 'chicken',
+  '番茄': 'tomato',
+  '西红柿': 'tomato',
+  '牛肉': 'beef',
+  '猪肉': 'pork',
+  '鱼肉': 'fish',
+  '虾': 'shrimp',
+  '白菜': 'cabbage',
+  '菠菜': 'spinach',
+  '土豆': 'potato',
+  '胡萝卜': 'carrot',
+  '洋葱': 'onion',
+  '大蒜': 'garlic',
+  '姜': 'ginger',
+  '葱': 'green onion',
+  '米饭': 'rice',
+  '面条': 'noodles',
+  '豆腐': 'tofu',
+  '牛奶': 'milk',
+  '奶酪': 'cheese',
+  '黄油': 'butter',
+  '盐': 'salt',
+  '糖': 'sugar',
+  '油': 'oil',
+  '酱油': 'soy sauce',
+  '醋': 'vinegar',
+  '辣椒': 'chili',
+  '青椒': 'bell pepper',
+  '黄瓜': 'cucumber',
+  '茄子': 'eggplant',
+  '南瓜': 'pumpkin',
+  '蘑菇': 'mushroom',
+  '芹菜': 'celery',
+  '生菜': 'lettuce',
+  '苹果': 'apple',
+  '香蕉': 'banana',
+  '橙子': 'orange',
+  '葡萄': 'grape',
+  '草莓': 'strawberry',
+  '西瓜': 'watermelon',
+  '柠檬': 'lemon',
+  '牛油果': 'avocado',
+  '牛奶': 'milk',
+  '酸奶': 'yogurt',
+  '面包': 'bread',
+  '三文鱼': 'salmon',
+  '虾': 'shrimp',
+  '蟹': 'crab',
+  '龙虾': 'lobster',
+}
+
+export function translateIngredient(chineseName: string): string {
+  return ingredientTranslation[chineseName] || chineseName.toLowerCase()
+}
+
 interface SpoonacularRecipe {
   id: number
   title: string
