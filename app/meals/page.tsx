@@ -5,7 +5,6 @@ import { useSearchParams } from 'next/navigation'
 import MealCard from '@/components/MealCard'
 import { Ingredient, Recipe } from '@/lib/types'
 import { getFavorites } from '@/lib/favorites'
-import { generateSingleMeal } from '@/lib/zhipu'
 
 interface MealPlan {
   breakfast: Recipe | null
@@ -66,7 +65,12 @@ function MealsContent() {
       const favorites = getFavorites()
       const cuisineType = type === 'breakfast' ? '早餐' : type === 'lunch' ? '午餐' : '晚餐'
 
-      const newRecipe = await generateSingleMeal(ingredients, cuisineType, favorites)
+      const res = await fetch('/api/recipes/regenerate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ingredients, cuisine: cuisineType, favorites }),
+      })
+      const newRecipe = await res.json()
 
       setMealPlan(prev => {
         if (!prev) return prev
